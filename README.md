@@ -51,7 +51,7 @@ A single-screen Android app, built with **MIT App Inventor**, that turns outline
 
 ## Screenshot
 
-![App Screenshot](screenshot.png)
+![App Screenshot](Screenshot_2026-09-16-21-01-31-475_appinventor.ai_mytheegovind.Colouring_Book.jpg)
 
 *The app in action — colouring an outline image with the palette and slider.*
 
