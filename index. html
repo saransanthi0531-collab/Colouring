@@ -1,0 +1,210 @@
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">  
+<title>Colouring Book</title>  
+<link rel="preconnect" href="https://fonts.googleapis.com">  
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">  
+<style>  
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }  
+  html, body { margin: 0; background: #e8eaf6; }  
+  body {  
+    font-family: "Fredoka", "Trebuchet MS", "Segoe UI", sans-serif;  
+    color: #111;  
+    display: flex;  
+    justify-content: center;  
+  }  .app {
+width: 100%;
+max-width: 520px;
+min-height: 100vh;
+background: #fff;
+display: flex;
+flex-direction: column;
+align-items: center;
+box-shadow: 0 0 24px rgba(0,0,0,.15);
+}
+
+.bar {
+width: 100%;
+background: #3F51B5;
+color: #fff;
+font-weight: 700;
+font-size: 1.5rem;
+padding: 18px 20px;
+letter-spacing: .5px;
+}
+
+#board {
+display: block;
+width: min(100%, calc((100vh - 330px) * 0.6667));
+min-width: 260px;
+aspect-ratio: 2 / 3;
+background-color: #fff;
+background-size: 100% 100%;
+background-repeat: no-repeat;
+touch-action: none;
+cursor: crosshair;
+}
+
+.controls {
+width: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 14px;
+padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+.btn {
+font: inherit;
+font-weight: 700;
+font-size: 1.05rem;
+letter-spacing: .5px;
+text-transform: uppercase;
+color: #111;
+border: 0;
+border-radius: 3px;
+padding: 14px 0;
+cursor: pointer;
+box-shadow: 0 2px 4px rgba(0,0,0,.3);
+}
+.btn:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.btn:focus-visible, .swatch:focus-visible, input:focus-visible { outline: 3px solid #3F51B5; outline-offset: 2px; }
+#clear { background: #00FFFF; width: 160px; }
+.nav { display: flex; gap: 16px; }
+.nav .btn { background: #FFFF00; width: 160px; }
+
+.swatches { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.swatch {
+width: 56px; height: 56px;
+border: 0; border-radius: 3px;
+box-shadow: 0 2px 4px rgba(0,0,0,.3);
+cursor: pointer;
+padding: 0;
+}
+.swatch[aria-pressed="true"] { outline: 4px solid #111; outline-offset: 2px; }
+
+.thick { display: flex; align-items: center; gap: 14px; width: 100%; max-width: 440px; }
+.thick label { font-weight: 700; font-size: 1.3rem; letter-spacing: 1px; text-transform: uppercase; }
+input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; background: transparent; height: 28px; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; background: #ddd; border-radius: 2px; }
+input[type=range]::-moz-range-track { height: 4px; background: #ddd; border-radius: 2px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; margin-top: -10px; border-radius: 50%; background: #444; border: 0; }
+input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #444; border: 0; }
+</style>
+
+</head>  
+<body>  <div class="app">  
+  <div class="bar">Colouring Book</div>  <canvas id="board" width="720" height="1080" aria-label="Colouring canvas"></canvas>
+
+  <div class="controls">  
+    <button class="btn" id="clear">Clear</button>  <div class="swatches" id="swatches" role="group" aria-label="Colours"></div>  
+
+<div class="thick">  
+  <label for="size">Thickness</label>  
+  <input id="size" type="range" min="1" max="40" value="4">  
+</div>  
+
+<div class="nav">  
+  <button class="btn" id="back">Back</button>  
+  <button class="btn" id="next">Next</button>  
+</div>
+
+  </div>  
+</div>  <script>  
+/* ---------- Settings you can change ---------- */  
+const TOTAL_IMAGES = 4;        // number of pictures: 1.jpeg ... 4.jpeg  
+const IMAGE_EXT    = ".jpeg";  
+const COLOURS = [  
+  ["Orange", "#FFC800"], ["Pink", "#FF00FF"], ["Blue", "#0000FF"], ["Grey", "#888888"],  
+  ["Green", "#00FF00"],  ["Red", "#FF0000"],  ["Yellow", "#FFFF00"]  
+];  
+  
+/* ---------- State ---------- */  
+let imageNumber = 1;  
+let paintColor  = COLOURS[0][1];  
+let lineWidth   = 4;  
+  
+const canvas = document.getElementById("board");  
+const ctx = canvas.getContext("2d");  
+ctx.lineCap = "round";  
+ctx.lineJoin = "round";  
+  
+/* ---------- Colour buttons ---------- */  
+const box = document.getElementById("swatches");  
+COLOURS.forEach(([name, hex]) => {  
+  const b = document.createElement("button");  
+  b.className = "swatch";  
+  b.style.background = hex;  
+  b.title = name;  
+  b.setAttribute("aria-label", name);  
+  b.setAttribute("aria-pressed", hex === paintColor);  
+  b.addEventListener("click", () => {  
+    paintColor = hex;  
+    box.querySelectorAll(".swatch").forEach(s => s.setAttribute("aria-pressed", s === b));  
+  });  
+  box.appendChild(b);  
+});  
+  
+/* ---------- Thickness ---------- */  
+const size = document.getElementById("size");  
+size.addEventListener("input", () => { lineWidth = Number(size.value); });  
+  
+/* ---------- Drawing ---------- */  
+let drawing = false, prevX = 0, prevY = 0;  
+  
+function pos(e) {  
+  const r = canvas.getBoundingClientRect();  
+  return { x: (e.clientX - r.left) * (canvas.width / r.width),  
+           y: (e.clientY - r.top)  * (canvas.height / r.height) };  
+}  
+function line(x1, y1, x2, y2) {  
+  ctx.strokeStyle = paintColor;  
+  ctx.lineWidth = lineWidth * (canvas.width / canvas.getBoundingClientRect().width);  
+  ctx.beginPath();  
+  ctx.moveTo(x1, y1);  
+  ctx.lineTo(x2, y2);  
+  ctx.stroke();  
+}  
+canvas.addEventListener("pointerdown", e => {  
+  drawing = true;  
+  canvas.setPointerCapture(e.pointerId);  
+  const p = pos(e);  
+  prevX = p.x; prevY = p.y;  
+  line(prevX, prevY, prevX + 0.01, prevY);  
+});  
+canvas.addEventListener("pointermove", e => {  
+  if (!drawing) return;  
+  const p = pos(e);  
+  line(prevX, prevY, p.x, p.y);  
+  prevX = p.x; prevY = p.y;  
+});  
+["pointerup", "pointercancel", "pointerleave"].forEach(ev =>  
+  canvas.addEventListener(ev, () => { drawing = false; }));  
+  
+/* ---------- Clear ---------- */  
+function clearDrawing() { ctx.clearRect(0, 0, canvas.width, canvas.height); }  
+document.getElementById("clear").addEventListener("click", clearDrawing);  
+  
+/* ---------- Back / Next ---------- */  
+const backBtn = document.getElementById("back");  
+const nextBtn = document.getElementById("next");  
+  
+function showImage() {  
+  canvas.style.backgroundImage = `url("${imageNumber}${IMAGE_EXT}")`;  
+  backBtn.disabled = imageNumber <= 1;  
+  nextBtn.disabled = imageNumber >= TOTAL_IMAGES;  
+  backBtn.style.opacity = backBtn.disabled ? .5 : 1;  
+  nextBtn.style.opacity = nextBtn.disabled ? .5 : 1;  
+}  
+backBtn.addEventListener("click", () => {  
+  if (imageNumber > 1) { imageNumber--; clearDrawing(); showImage(); }  
+});  
+nextBtn.addEventListener("click", () => {  
+  if (imageNumber < TOTAL_IMAGES) { imageNumber++; clearDrawing(); showImage(); }  
+});  
+showImage();  
+</script>  </body>  
+</html>  Intha code ha website ku use pana
+Website la colour adikura option katum haaa
+Na last time panna apo website la colour adikura option illa
